@@ -1,0 +1,5 @@
+#1. buatlah sebuah halaman login dengan validasi sebagai berikut:
+	a. jika email kosong maka tampilkan pesan "email harus diisi" pada bagian bawah element email;
+	b. jika password kosong maka tampilkan pesan "password harus diisi" pada bagian bawah element password;
+	c. jika login berhasil maka tampilkan pesan "login berhasil" pada bagian bawah tombol login, dan pesan "email anda: <email>" dan password anda: <password>" ;
+	d. jika login berhasil ubahkan tampilan tombol login menjadi "logout";

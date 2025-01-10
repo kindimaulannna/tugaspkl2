@@ -1,0 +1,14 @@
+#1 . ubahlah fungsi CRUD pada controller Dashboard menjadi CRUD yang menggunakan fungsi jquery ajax.
+#2. tambahkan validasi, jika username sudah digunakan maka tidak bisa digunakan lagi.
+#3. perbaiki fungsi login.
+	a. ubah field email pada form login menjadi username.
+	b. lakukan validasi pengecekan username dan password ke table user;
+	c. jika username dan password sesuai dengan yang ada di table user maka redirect ke halaman dashboard;
+	d. jika username dan password tidak sesuai maka tampilkan pesan "username atau password salah";
+#4. lakukan validasi di halaman dashboard,
+	a. jika user belum login maka redirect ke halaman login;
+	b. jika user sudah login maka tampilkan halaman dashboard;
+	c. user hanya dapat menghapus/mengedit data selain data dirinya sendiri;
+
+note: tugas di push ke github masing-masing, dan share link nya di grup.
+
