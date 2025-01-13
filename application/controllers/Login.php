@@ -3,69 +3,73 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 class Login extends CI_Controller
 {
-    public function __construct()
-    {
-        parent::__construct();
-        $this->load->model('User_model');
-        $this->load->library('session');
-    }
 
-    public function index()
-    {
-        if ($this->session->userdata('logged_in')) {
-            redirect('dashboard'); // Redirect jika sudah login
-        }
-        $this->load->view('view_login');
-    }
+	public function __construct()
+	{
+		parent::__construct();
+		$this->load->model('User_model');
+	}
 
-    public function proses_login()
-    {
-        header('Content-Type: application/json');
+	public function index()
+	{
+		$this->load->view('view_login');
+	}
 
-        $username = $this->input->post('username');
-        $password = $this->input->post('password');
+	public function proses_login()
+	{
+		$username = $this->input->post('username');
+		$password = $this->input->post('password');
 
-        // Validasi input
-        if (empty($username) || empty($password)) {
-            echo json_encode([
-                'status' => false,
-                'message' => 'Username dan Password tidak boleh kosong'
-            ]);
-            return;
-        }
 
-        $user = $this->User_model->getUserByUsername($username);
 
-        if ($user) {
-            // Cek password secara langsung tanpa password_verify
-            if ($user->password === $password) { // Perbandingan langsung dengan password
-                $this->session->set_userdata([
-                    'logged_in' => true,
-                    'username' => $user->username,
-                    'user_id' => $user->id
-                ]);
+		$el = array();
+		$err = array();
+		if ($username == '') {
+			array_push($err, "username wajib diisi");
+			array_push($el, "username");
+		}
+		if ($password == '') {
+			array_push($err, "password wajib diisi");
+			array_push($el, "password");
+		}
 
-                echo json_encode([
-                    'status' => true,
-                    'message' => 'Login berhasil'
-                ]);
-            } else {
-                echo json_encode([
-                    'status' => false,
-                    'message' => 'Password salah'
-                ]);
-            }
-        } else {
-            echo json_encode([
-                'status' => false,
-                'message' => 'User tidak ditemukan'
-            ]);
-        }
-    }
+		if (count($el) > 0) {
+			$ret = array(
+				'element' => $el,
+				'error' => $err,
+				'status' => false,
+				'message' => 'Login Gagal'
+			);
+		} else {
+			$q = $this->User_model->login($username, $password);
+			if ($q->num_rows() > 0) {
 
-    public function logout()
-    {
-        $this->session->sess_destroy();
-        redirect('login');
-    }
+				$sess = array(
+					'is_login' => TRUE,
+					'username' => $q->row()->username
+				);
+
+				$this->session->set_userdata($sess);
+
+				$ret = array(
+					'username' => $username,
+					'password' => $password,
+					'status' => true,
+					'message' => 'Login Berhasil'
+				);
+			} else {
+				$ret = array(
+					'element' => '',
+					'error' => '',
+					'status' => false,
+					'message' => 'Username atau Password Salah'
+				);
+			}
+		}
+
+
+		echo json_encode($ret);
+	}
 }
+
+/* End of file: Login.php */
