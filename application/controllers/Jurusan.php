@@ -3,105 +3,136 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 class Jurusan extends CI_Controller
 {
-    public function __construct()
-    {
-        parent::__construct();
-        $this->load->model('Masterdata_model', 'md');
-    }
 
-    public function index()
-    {
-        $data = array(
-            'menu' => 'backend/menu',
-            'content' => 'backend/jurusanKonten',
-            'title' => 'Admin'
-        );
-        $this->load->view('template', $data);
-    }
+	public function __construct()
+	{
+		parent::__construct();
+		$this->load->model('Masterdata_model', 'md');
+	}
 
-    public function table_jurusan()
-    {
-        $q = $this->md->getAllJurusan();
-        $response = [
-            'status' => $q->num_rows() > 0,
-            'data' => $q->result(),
-            'message' => $q->num_rows() > 0 ? '' : 'Data tidak tersedia',
-        ];
-        echo json_encode($response);
-    }
+	public function index()
+	{
+		$data = array(
+			'menu' => 'backend/menu',
+			'content' => 'backend/jurusanKonten',
+			'title' => 'Admin'
+		);
+		$this->load->view('template', $data);
+	}
 
-    public function tambah_jurusan()
-    {
-        $id_tahun_pelajaran = $this->input->post('id_tahun_pelajaran');
-        $nama_jurusan = $this->input->post('nama_jurusan');
+	public function table_jurusan()
+	{
+		$q = $this->md->getAllJurusanNotDeleted();
+		$dt = [];
+		if ($q->num_rows() > 0) {
+			foreach ($q->result() as $row) {
+				$dt[] = $row;
+			}
 
-        if (empty($id_tahun_pelajaran) || empty($nama_jurusan)) {
-            echo json_encode(['status' => false, 'message' => 'Semua field wajib diisi.']);
-            return;
-        }
+			$ret['status'] = true;
+			$ret['data'] = $dt;
+			$ret['message'] = '';
+		} else {
+			$ret['status'] = false;
+			$ret['data'] = [];
+			$ret['message'] = 'Data tidak tersedia';
+		}
+		echo json_encode($ret);
+	}
 
-        $data = [
-            'id_tahun_pelajaran' => $id_tahun_pelajaran,
-            'nama_jurusan' => $nama_jurusan,
-        ];
+	public function option_tahun_pelajaran()
+	{
+		$q = $this->md->getAllTahunPelajaranNotDeleted();
+		$ret = '';
+		if ($q->num_rows() > 0) {
+			foreach ($q->result() as $row) {
+				$ret .= '<option value="' . $row->id . '">' . $row->nama_tahun_pelajaran . '</option>';
+			}
+		}
+		echo $ret;
+	}
 
-        $insert = $this->md->insertJurusan($data);
-        echo json_encode([
-            'status' => $insert,
-            'message' => $insert ? 'Data berhasil ditambahkan' : 'Gagal menambahkan data',
-        ]);
-    }
+	public function save()
+	{
 
-    public function edit_jurusan()
-    {
-        $id = $this->input->post('id');
-        $id_tahun_pelajaran = $this->input->post('id_tahun_pelajaran');
-        $nama_jurusan = $this->input->post('nama_jurusan');
+		$id = $this->input->post('id');
+		$id_tahun_pelajaran = $this->input->post('id_tahun_pelajaran');
+		$data['nama_jurusan'] = $this->input->post('nama_jurusan');
+		$data['id_tahun_pelajaran'] = $this->input->post('id_tahun_pelajaran');
+		$data['created_at'] = date('Y-m-d H:i:s');
+		$data['updated_at'] = date('Y-m-d H:i:s');
+		$data['deleted_at'] = 0;
 
-        if (empty($id) || empty($id_tahun_pelajaran) || empty($nama_jurusan)) {
-            echo json_encode(['status' => false, 'message' => 'Semua field wajib diisi.']);
-            return;
-        }
+		if ($data['nama_jurusan']) {
+			$cek = $this->md->cekJurusanDuplicate($data['nama_jurusan'], $id_tahun_pelajaran, $id);
+			if ($cek->num_rows() > 0) {
+				$ret['status'] = false;
+				$ret['message'] = 'Jurusan sudah ada';
+			} else {
 
-        $data = [
-            'id_tahun_pelajaran' => $id_tahun_pelajaran,
-            'nama_jurusan' => $nama_jurusan,
-        ];
+				if ($id) {
+					$q = $this->md->updateJurusan($id, $data);
+					if ($q) {
+						$ret['status'] = true;
+						$ret['message'] = 'Data berhasil diupdate';
+					} else {
+						$ret['status'] = false;
+						$ret['message'] = 'Data gagal diupdate';
+					}
+				} else {
+					$q = $this->md->saveJurusan($data);
+					if ($q) {
+						$ret['status'] = true;
+						$ret['message'] = 'Data berhasil disimpan';
+					} else {
+						$ret['status'] = false;
+						$ret['message'] = 'Data gagal disimpan';
+					}
+				}
+			}
+		} else {
+			$ret['status'] = false;
+			$ret['message'] = 'Data gagal disimpan';
+		}
+		echo json_encode($ret);
+	}
 
-        $update = $this->md->updateJurusan($id, $data);
-        echo json_encode([
-            'status' => $update,
-            'message' => $update ? 'Data berhasil diperbarui' : 'Gagal memperbarui data',
-        ]);
-    }
+	public function delete()
+	{
+		$id = $this->input->post('id');
+		$data['deleted_at'] = time();
+		$q = $this->md->updateJurusan($id, $data);
+		if ($q) {
+			$ret['status'] = true;
+			$ret['message'] = 'Data berhasil dihapus';
+		} else {
+			$ret['status'] = false;
+			$ret['message'] = 'Data gagal dihapus';
+		}
+		echo json_encode($ret);
+	}
+	public function edit()
+	{
 
-    public function hapus_jurusan($id)
-    {
-        if (empty($id)) {
-            echo json_encode(['status' => false, 'message' => 'ID tidak valid.']);
-            return;
-        }
+		$id = $this->input->post('id');
+		$q = $this->md->getJurusanByID($id);
+		if ($q->num_rows() > 0) {
+			$ret = array(
+				'status' => true,
+				'data' => $q->row(),
+				'message' => ''
+			);
+		} else {
+			$ret = array(
+				'status' => false,
+				'data' => [],
+				'message' => 'Data tidak ditemukan',
+				'query' => $this->db->last_query()
+			);
+		}
 
-        $delete = $this->md->deleteJurusan($id);
-        echo json_encode([
-            'status' => $delete,
-            'message' => $delete ? 'Data berhasil dihapus' : 'Gagal menghapus data',
-        ]);
-    }
-
-    public function detail_jurusan()
-    {
-        $id = $this->input->post('id');
-        if (empty($id)) {
-            echo json_encode(['status' => false, 'message' => 'ID tidak valid.']);
-            return;
-        }
-
-        $jurusan = $this->md->getJurusanById($id);
-        echo json_encode([
-            'status' => (bool)$jurusan,
-            'data' => $jurusan,
-            'message' => $jurusan ? '' : 'Data tidak ditemukan',
-        ]);
-    }
+		echo json_encode($ret);
+	}
 }
+
+/* End of file: Jurusan.php */

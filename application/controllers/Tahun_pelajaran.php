@@ -3,91 +3,130 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 class Tahun_pelajaran extends CI_Controller
 {
-    public function __construct()
-    {
-        parent::__construct();
-        $this->load->model('Masterdata_model', 'md');
-    }
 
-    public function index()
-    {
-        $data = array(
-            'menu' => 'backend/menu',
-            'content' => 'backend/tahunPelajaranKonten',
-            'title' => 'Admin'
-        );
-        $this->load->view('template', $data);
-    }
+	public function __construct()
+	{
+		parent::__construct();
+		$this->load->model('Masterdata_model', 'md');
+	}
 
-    public function table_tahun_pelajaran()
-    {
-        $q = $this->md->getAllTahunPelajaran();
-        $dt = [];
-        if ($q->num_rows() > 0) {
-            foreach ($q->result() as $row) {
-                $dt[] = $row;
-            }
+	public function index()
+	{
 
-            $ret['status'] = true;
-            $ret['data'] = $dt;
-            $ret['message'] = '';
-        } else {
-            $ret['status'] = false;
-            $ret['data'] = [];
-            $ret['message'] = 'Data tidak tersedia';
-        }
+		$data = array(
+			'menu' => 'backend/menu',
+			'content' => 'backend/tahunPelajaranKonten',
+			'title' => 'Admin'
+		);
+		$this->load->view('template', $data);
+	}
 
-        echo json_encode($ret);
-    }
+	public function table_tahun_pelajaran()
+	{
 
-    public function tambah_tahun_pelajaran()
-    {
-        $data = array(
-            'nama_tahun_pelajaran' => $this->input->post('nama_tahun_pelajaran'),
-            'tanggal_mulai' => $this->input->post('tanggal_mulai'),
-            'tanggal_akhir' => $this->input->post('tanggal_akhir'),
-            'status_tahun_pelajaran' => $this->input->post('status_tahun_pelajaran'),
-        );
+		$q = $this->md->getAllTahunPelajaranNotDeleted();
+		$dt = [];
+		if ($q->num_rows() > 0) {
+			foreach ($q->result() as $row) {
+				$dt[] = $row;
+			}
 
-        $insert = $this->md->insertTahunPelajaran($data);
-        if ($insert) {
-            $response = ['status' => true, 'message' => 'Data berhasil ditambahkan'];
-        } else {
-            $response = ['status' => false, 'message' => 'Gagal menambahkan data'];
-        }
+			$ret['status'] = true;
+			$ret['data'] = $dt;
+			$ret['message'] = '';
+		} else {
+			$ret['status'] = false;
+			$ret['data'] = [];
+			$ret['message'] = 'Data tidak tersedia';
+		}
 
-        echo json_encode($response);
-    }
+		echo json_encode($ret);
+	}
 
-    public function edit_tahun_pelajaran()
-    {
-        $id = $this->input->post('id');
-        $data = array(
-            'nama_tahun_pelajaran' => $this->input->post('nama_tahun_pelajaran'),
-            'tanggal_mulai' => $this->input->post('tanggal_mulai'),
-            'tanggal_akhir' => $this->input->post('tanggal_akhir'),
-            'status_tahun_pelajaran' => $this->input->post('status_tahun_pelajaran'),
-        );
+	public function save()
+	{
+		$id = $this->input->post('id');
+		$data['nama_tahun_pelajaran'] = $this->input->post('nama_tahun_pelajaran');
+		$data['tanggal_mulai'] = $this->input->post('tanggal_mulai');
+		$data['tanggal_akhir'] = $this->input->post('tanggal_akhir');
+		$data['status_tahun_pelajaran'] = $this->input->post('status_tahun_pelajaran');
+		$data['created_at'] = date('Y-m-d H:i:s');
+		$data['updated_at'] = date('Y-m-d H:i:s');
+		$data['deleted_at'] = 0;
 
-        $update = $this->md->updateTahunPelajaran($id, $data);
-        if ($update) {
-            $response = ['status' => true, 'message' => 'Data berhasil diperbarui'];
-        } else {
-            $response = ['status' => false, 'message' => 'Gagal memperbarui data'];
-        }
+		if ($data['nama_tahun_pelajaran']) {
+			$cek = $this->md->cekTahunPelajaranDuplicate($data['nama_tahun_pelajaran'], $id);
+			if ($cek->num_rows() > 0) {
+				$ret['status'] = false;
+				$ret['message'] = 'Tahun Pelajaran sudah ada';
+				$ret['query'] = $this->db->last_query();
+			} else {
+				if ($id) {
+					$q = $this->md->updateTahunPelajaran($id, $data);
+					if ($q) {
+						$ret['status'] = true;
+						$ret['message'] = 'Data berhasil diupdate';
+					} else {
+						$ret['status'] = false;
+						$ret['message'] = 'Data gagal diupdate';
+					}
+				} else {
+					$q = $this->md->saveTahunPelajaran($data);
+					if ($q) {
+						$ret['status'] = true;
+						$ret['message'] = 'Data berhasil disimpan';
+					} else {
+						$ret['status'] = false;
+						$ret['message'] = 'Data gagal disimpan';
+					}
+				}
+			}
+		} else {
+			$ret['status'] = false;
+			$ret['message'] = 'Tahun Pelajaran tidak boleh kosong';
+		}
 
-        echo json_encode($response);
-    }
 
-    public function hapus_tahun_pelajaran($id)
-    {
-        $delete = $this->md->deleteTahunPelajaran($id);
-        if ($delete) {
-            $response = ['status' => true, 'message' => 'Data berhasil dihapus'];
-        } else {
-            $response = ['status' => false, 'message' => 'Gagal menghapus data'];
-        }
+		echo json_encode($ret);
+	}
 
-        echo json_encode($response);
-    }
+	public function edit()
+	{
+
+		$id = $this->input->post('id');
+		$q = $this->md->getTahunPelajaranByID($id);
+		if ($q->num_rows() > 0) {
+			$ret = array(
+				'status' => true,
+				'data' => $q->row(),
+				'message' => ''
+			);
+		} else {
+			$ret = array(
+				'status' => false,
+				'data' => [],
+				'message' => 'Data tidak ditemukan',
+				'query' => $this->db->last_query()
+			);
+		}
+
+		echo json_encode($ret);
+	}
+
+	public function delete()
+	{
+		$id = $this->input->post('id');
+		$data['deleted_at'] = time();
+		$q = $this->md->updateTahunPelajaran($id, $data);
+		if ($q) {
+			$ret['status'] = true;
+			$ret['message'] = 'Data berhasil dihapus';
+		} else {
+			$ret['status'] = false;
+			$ret['message'] = 'Data gagal dihapus';
+		}
+		echo json_encode($ret);
+	}
 }
+
+/* End of file: Tahun_pelajaran.php */

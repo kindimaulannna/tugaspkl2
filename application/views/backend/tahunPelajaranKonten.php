@@ -33,13 +33,13 @@
 			<div class="modal-header">
 				<h5 class="modal-title">Tambah Tahun Pelajaran</h5>
 
-				<button type="button" class="close " data-bs-dismiss="modal" aria-label="Close">
+				<button type="button" class="close " data-dismiss="modal" aria-label="Close">
 					<span aria-hidden="true">&times;</span>
 				</button>
 			</div>
 			<div class="modal-body">
 				<div class="form-user">
-					<form action="#" method="post" enctype="multipart/form-data">
+					<form id="formTahunPelajaran" action="#" method="post" enctype="multipart/form-data">
 						<input type="hidden" class="form-control" id="id" name="id" value="">
 
 						<div class="mb-1">
@@ -77,7 +77,7 @@
 			</div>
 			<div class="modal-footer">
 				<button type="button" class="btn btn-primary saveBtn">Simpan</button>
-				<button class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+				<button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
 			</div>
 		</div>
 	</div>
@@ -86,152 +86,116 @@
 
 
 <script>
-	$(document).ready(function () {
-    tabelTahunPelajaran();
+	$(document).ready(function() {
+		tabelTahunPelajaran();
+	})
 
-    // Event handler untuk tombol tambah
-    $('.btnTambahTahunPelajaran').click(function () {
-        $('#modalTahunPelajaran').modal('show');
-        $('#id').val('');
-        $('#nama_tahun_pelajaran').val('');
-        $('#tanggal_mulai').val('');
-        $('#tanggal_akhir').val('');
-        $('#status_tahun_pelajaran').val('');
-    });
+	function tabelTahunPelajaran() {
+		let tabelTahunPelajaran = $('#tabelTahunPelajaran');
+		let tr = '';
+		$.ajax({
+			url: '<?php echo base_url('tahun_pelajaran/table_tahun_pelajaran'); ?>',
+			type: 'GET',
 
-    // Event handler untuk tombol simpan
-    $('.saveBtn').click(function () {
-    // Ambil nilai input
-    const id = $('#id').val();
-    const namaTahunPelajaran = $('#nama_tahun_pelajaran').val().trim();
-    const tanggalMulai = $('#tanggal_mulai').val().trim();
-    const tanggalAkhir = $('#tanggal_akhir').val().trim();
-    const statusTahunPelajaran = $('#status_tahun_pelajaran').val();
+			dataType: 'json',
+			success: function(response) {
+				if (response.status) {
+					tabelTahunPelajaran.find('tbody').html('');
+					let no = 1;
+					$.each(response.data, function(i, item) {
+						tr = $('<tr>');
 
-    // Reset error block
-    $('.error-block').html('');
+						tr.append('<td>' + no++ + '</td>');
+						tr.append('<td>' + item.nama_tahun_pelajaran + '</td>');
+						tr.append('<td>' + item.tanggal_mulai + '</td>');
+						tr.append('<td>' + item.tanggal_akhir + '</td>');
+						tr.append('<td>' + item.status_tahun_pelajaran + '</td>');
+						tr.append('<td>	<button class="btn btn-warning" onclick="editTahunPelajaran(' + item.id + ')">Edit</button> <button class="btn btn-danger" onclick="deleteTahunPelajarar(' + item.id + ')">Delete</button></td>');
+						tabelTahunPelajaran.find('tbody').append(tr);
+					});
 
-    // Validasi input
-    let isValid = true;
-    if (!namaTahunPelajaran) {
-        $('#nama_tahun_pelajaran').next('.error-block').html('Nama Tahun Pelajaran tidak boleh kosong.');
-        isValid = false;
-    }
-    if (!tanggalMulai) {
-        $('#tanggal_mulai').next('.error-block').html('Tanggal Mulai tidak boleh kosong.');
-        isValid = false;
-    }
-    if (!tanggalAkhir) {
-        $('#tanggal_akhir').next('.error-block').html('Tanggal Akhir tidak boleh kosong.');
-        isValid = false;
-    }
-    if (!statusTahunPelajaran) {
-        $('#status_tahun_pelajaran').next('.error-block').html('Status harus dipilih.');
-        isValid = false;
-    }
+				} else {
+					tr = $('<tr>');
+					tabelTahunPelajaran.find('tbody').html('');
+					tr.append('<td colspan="4">' + response.message + '</td>');
+				}
+			}
+		});
+	}
 
-    // Jika validasi gagal, hentikan proses
-    if (!isValid) {
-        return;
-    }
+	$('.btnTambahTahunPelajaran').click(function() {
+		$('#id').val('');
+		$('#formTahunPelajaran').trigger('reset');
+		$('#modalTahunPelajaran').modal('show');
+	});
+	$('.saveBtn').click(function() {
+		// lakukan proses simpan data, lalu tutup modal , lalu reload tabel
+		$.ajax({
+			url: '<?php echo base_url('tahun_pelajaran/save'); ?>',
+			type: 'POST',
+			data: {
+				id: $('#id').val(),
+				nama_tahun_pelajaran: $('#nama_tahun_pelajaran').val(),
+				tanggal_mulai: $('#tanggal_mulai').val(),
+				tanggal_akhir: $('#tanggal_akhir').val(),
+				status_tahun_pelajaran: $('#status_tahun_pelajaran').val(),
+			},
+			dataType: 'json',
+			success: function(response) {
+				if (response.status) {
+					alert(response.message);
+					$('#modalTahunPelajaran').modal('hide');
+					tabelTahunPelajaran();
+				} else {
+					alert(response.message);
+				}
+			}
 
-    // Jika validasi berhasil, lakukan AJAX
-    const url = id ? 'tahun_pelajaran/edit_tahun_pelajaran' : 'tahun_pelajaran/tambah_tahun_pelajaran';
+		})
+	})
 
-    $.ajax({
-        url: `<?php echo base_url(); ?>${url}`,
-        type: 'POST',
-        data: {
-            id: id,
-            nama_tahun_pelajaran: namaTahunPelajaran,
-            tanggal_mulai: tanggalMulai,
-            tanggal_akhir: tanggalAkhir,
-            status_tahun_pelajaran: statusTahunPelajaran,
-        },
-        dataType: 'json',
-        success: function (response) {
-            alert(response.message);
-            if (response.status) {
-                $('#modalTahunPelajaran').modal('hide');
-                tabelTahunPelajaran(); // Refresh tabel setelah simpan
-            }
-        },
-    });
-});
 
-});
+	function editTahunPelajaran(id) {
+		// tampilkan data dalam modal 
+		$.ajax({
+			url: '<?php echo base_url('tahun_pelajaran/edit'); ?>',
+			type: 'POST',
+			data: {
+				id: id,
+			},
+			dataType: 'json',
+			success: function(response) {
+				if (response.status) {
+					$('#id').val(response.data.id);
+					$('#nama_tahun_pelajaran').val(response.data.nama_tahun_pelajaran);
+					$('#tanggal_mulai').val(response.data.tanggal_mulai);
+					$('#tanggal_akhir').val(response.data.tanggal_akhir);
+					$('#status_tahun_pelajaran').val(response.data.status_tahun_pelajaran);
+					$('#modalTahunPelajaran').modal('show');
+				} else {
+					alert(response.message);
+				}
+			}
+		})
+	};
 
-// Fungsi untuk menampilkan data tabel tahun pelajaran
-function tabelTahunPelajaran() {
-    const tabelTahunPelajaran = $('#tabelTahunPelajaran');
-    tabelTahunPelajaran.find('tbody').html(''); // Kosongkan tabel terlebih dahulu
-
-    $.ajax({
-        url: '<?php echo base_url('tahun_pelajaran/table_tahun_pelajaran'); ?>',
-        type: 'GET',
-        dataType: 'json',
-        success: function (response) {
-            if (response.status) {
-                let no = 1;
-                response.data.forEach(function (item) {
-                    let row = `
-                        <tr>
-                            <td>${no++}</td>
-                            <td>${item.nama_tahun_pelajaran}</td>
-                            <td>${item.tanggal_mulai}</td>
-                            <td>${item.tanggal_akhir}</td>
-                            <td>${item.status_tahun_pelajaran == 1 ? 'Aktif' : 'Tidak Aktif'}</td>
-                            <td>
-                                <button class="btn btn-primary" onclick="editTahunPelajaran(${item.id})">Edit</button>
-                                <button class="btn btn-danger" onclick="deleteTahunPelajaran(${item.id})">Delete</button>
-                            </td>
-                        </tr>`;
-                    tabelTahunPelajaran.find('tbody').append(row);
-                });
-            } else {
-                tabelTahunPelajaran.find('tbody').html(`<tr><td colspan="6">${response.message}</td></tr>`);
-            }
-        },
-    });
-}
-
-// Fungsi untuk menghapus tahun pelajaran
-function deleteTahunPelajaran(id) {
-    if (confirm('Apakah Anda yakin ingin menghapus data ini?')) {
-        $.ajax({
-            url: `<?php echo base_url('tahun_pelajaran/hapus_tahun_pelajaran/'); ?>${id}`,
-            type: 'GET',
-            dataType: 'json',
-            success: function (response) {
-                alert(response.message);
-                if (response.status) {
-                    tabelTahunPelajaran(); // Refresh tabel setelah hapus
-                }
-            },
-        });
-    }
-}
-
-// Fungsi untuk edit tahun pelajaran
-function editTahunPelajaran(id) {
-    $.ajax({
-        url: `<?php echo base_url('tahun_pelajaran/table_tahun_pelajaran'); ?>`,
-        type: 'GET',
-        dataType: 'json',
-        success: function (response) {
-            if (response.status) {
-                const data = response.data.find((item) => item.id == id); // Cari data berdasarkan ID
-                if (data) {
-                    $('#modalTahunPelajaran').modal('show');
-                    $('#id').val(data.id);
-                    $('#nama_tahun_pelajaran').val(data.nama_tahun_pelajaran);
-                    $('#tanggal_mulai').val(data.tanggal_mulai);
-                    $('#tanggal_akhir').val(data.tanggal_akhir);
-                    $('#status_tahun_pelajaran').val(data.status_tahun_pelajaran);
-                }
-            }
-        },
-    });
-}
-
+	function deleteTahunPelajarar(id) {
+		// lakukan proses delete data, lalu reload tabel
+		$.ajax({
+			url: '<?php echo base_url('tahun_pelajaran/delete'); ?>',
+			type: 'POST',
+			data: {
+				id: id,
+			},
+			dataType: 'json',
+			success: function(response) {
+				if (response.status) {
+					alert(response.message);
+					tabelTahunPelajaran();
+				} else {
+					alert(response.message);
+				}
+			}
+		})
+	};
 </script>

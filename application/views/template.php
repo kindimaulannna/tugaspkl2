@@ -51,7 +51,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
 			<!-- Brand Logo -->
 			<a href="index3.html" class="brand-link">
 				<img src="<?php echo base_url(); ?>public/template/images/tritek.jpg" alt="AdminLTE Logo" class="brand-image img-circle elevation-3" style="opacity: .8">
-				<span class="brand-text font-weight-light">TRITECH</span>
+				<span class="brand-text font-weight-light">SMK TRITECH</span>
 			</a>
 
 			<!-- Sidebar -->
@@ -62,7 +62,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
 						<img src="<?php echo base_url(); ?>public/template/images/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image">
 					</div>
 					<div class="info">
-						<a href="#" class="d-block">hary dinata</a>
+						<a href="#" class="d-block">MaullAvs</a>
 					</div>
 				</div>
 
@@ -126,10 +126,9 @@ scratch. This page gets rid of all links and provides the needed markup only.
 		<footer class="main-footer">
 			<!-- To the right -->
 			<div class="float-right d-none d-sm-inline">
-				Anything you want
 			</div>
 			<!-- Default to the left -->
-			<strong>Copyright &copy; 2014-2021 <a href="https://adminlte.io">AdminLTE.io</a>.</strong> All rights reserved.
+			<strong>Copyright &copy; 2014-2025 <a href="https://adminlte.io">AdminLTE.io</a>.</strong> All rights reserved.
 		</footer>
 	</div>
 	<!-- ./wrapper -->

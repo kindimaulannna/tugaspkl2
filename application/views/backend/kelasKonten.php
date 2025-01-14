@@ -1,106 +1,212 @@
 <div class="row">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">Kelas</h3>
-            </div>
-            <div class="card-body">
-                <button class="btn btn-primary btnTambahKelas mb-2">Tambah Kelas</button>
-                <table class="table table-striped" id="tabelKelas">
-                    <thead>
-                        <tr>
-                            <th>No</th>
-                            <th>Id Tahun Pelajaran</th>
-                            <th>Id Jurusan</th>
-                            <th>Nama Kelas</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+	<div class="col-12">
+		<div class="card">
+			<div class="card-header">
+				<h3 class="card-title">Data Kelas</h3>
+			</div>
+			<div class="card-body">
+				<div class="btn btn-primary btnTambah mb-2"> <i class="fas fa-plus"></i> Tambah</div>
+				<div class="row">
+					<table class="table table-striped" id="tabel">
+						<thead>
+							<tr>
+								<th>No</th>
+								<th>Tahun Pelajaran</th>
+								<th>Nama Jurusan</th>
+								<th>Nama Kelas</th>
+
+
+								<th>Aksi</th>
+							</tr>
+						</thead>
+						<tbody>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
 </div>
 
-<div class="modal" id="modalKelas">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Tambah Kelas</h5>
-                <button class="close" data-dismiss="modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <form id="formKelas">
-                    <input type="hidden" id="id" name="id">
-                    <div class="form-group">
-                        <label for="id_tahun_pelajaran">ID Tahun Pelajaran</label>
-                        <input type="text" id="id_tahun_pelajaran" name="id_tahun_pelajaran" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="id_jurusan">ID Jurusan</label>
-                        <input type="text" id="id_jurusan" name="id_jurusan" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="nama_kelas">Nama Kelas</label>
-                        <input type="text" id="nama_kelas" name="nama_kelas" class="form-control" required>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-primary saveKelasBtn">Simpan</button>
-                <button class="btn btn-secondary" data-dismiss="modal">Tutup</button>
-            </div>
-        </div>
-    </div>
+<div class="modal" id="modal" tabindex=" -1" role="dialog">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Tambah Kelas</h5>
+
+				<button type="button" class="close " data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<div class="form-user">
+					<form id="formKelas" action="#" method="post" enctype="multipart/form-data">
+						<input type="hidden" class="form-control" id="id" name="id" value="">
+
+						<div class="mb-1">
+							<label for="id_tahun_pelajaran" class="form-label">Nama Tahun Pelajaran</label>
+							<select class="form-control" name="id_tahun_pelajaran" id="id_tahun_pelajaran">
+								<option value="">- Pilih Tahun Pelajaran -</option>
+							</select>
+							<div class="error-block"></div>
+						</div>
+						<div class="mb-1">
+							<label for="id_jurusan" class="form-label">Nama Jurusan</label>
+							<select class="form-control" name="id_jurusan" id="id_jurusan">
+								<option value="">- Pilih Jurusan -</option>
+							</select>
+							<div class="error-block"></div>
+						</div>
+						<div class="mb-1">
+							<label for="nama_kelas" class="form-label">Nama Kelas</label>
+							<input type="text" class="form-control" id="nama_kelas" name="nama_kelas" value="">
+							<div class="error-block"></div>
+						</div>
+
+					</form>
+
+					<div>
+
+					</div>
+
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-primary saveBtn">Simpan</button>
+				<button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+			</div>
+		</div>
+	</div>
 </div>
+
+
 
 <script>
-$(function () {
-    function refreshTable() {
-        $.get('<?= base_url('kelas/table_kelas'); ?>', function (res) {
-            const table = $('#tabelKelas tbody').empty();
-            if (res.status) {
-                res.data.forEach((row, i) => {
-                    table.append(`<tr>
-                        <td>${i + 1}</td>
-                        <td>${row.id_tahun_pelajaran}</td>
-                        <td>${row.id_jurusan}</td>
-                        <td>${row.nama_kelas}</td>
-                        <td>
-                            <button onclick="edit(${row.id})" class="btn btn-sm btn-warning">Edit</button>
-                            <button onclick="hapus(${row.id})" class="btn btn-sm btn-danger">Hapus</button>
-                        </td>
-                    </tr>`);
-                });
-            } else {
-                table.append(`<tr><td colspan="5">${res.message}</td></tr>`);
-            }
-        });
-    }
+	$(document).ready(function() {
+		tabel();
+		$('#id_tahun_pelajaran').load('<?php echo base_url('kelas/option_tahun_pelajaran'); ?>');
+		$('#id_tahun_pelajaran').change(function() {
+			let id = $(this).val(); // id tahun pelajaran
+			let url = '<?php echo base_url('kelas/option_jurusan'); ?>';
+			$('#id_jurusan').load(url + '/' + id);
+		})
 
-    $('.btnTambahKelas').click(() => $('#modalKelas').modal('show'));
+	})
 
-    $('.saveKelasBtn').click(function () {
-        const data = $('#formKelas').serialize();
-        const id = $('#id').val();
-        const url = id ? 'kelas/edit_kelas' : 'kelas/tambah_kelas';
+	function tabel() {
+		let tabel = $('#tabel');
+		let tr = '';
+		$.ajax({
+			url: '<?php echo base_url('kelas/table_kelas'); ?>',
+			type: 'GET',
 
-        $.post(`<?= base_url(); ?>${url}`, data, function (res) {
-            alert(res.message);
-            if (res.status) {
-                $('#modalKelas').modal('hide');
-                refreshTable();
-            }
-        });
-    });
+			dataType: 'json',
+			success: function(response) {
+				if (response.status) {
+					tabel.find('tbody').html('');
+					let no = 1;
+					$.each(response.data, function(i, item) {
+						tr = $('<tr>');
 
-    window.hapus = (id) => {
-        if (confirm('Yakin ingin menghapus?')) {
-            $.get(`kelas/hapus_kelas/${id}`, refreshTable);
-        }
-    };
+						tr.append('<td>' + no++ + '</td>');
+						tr.append('<td>' + item.nama_tahun_pelajaran + '</td>');
+						tr.append('<td>' + item.nama_jurusan + '</td>');
+						tr.append('<td>' + item.nama_kelas + '</td>');
 
-    refreshTable();
-});
+						tr.append('<td>	<button class="btn btn-primary" onclick="editKelas(' + item.id + ')">Edit</button> <button class="btn btn-danger" onclick="deleteKelas(' + item.id + ')">Delete</button></td>');
+						tabel.find('tbody').append(tr);
+					});
+
+				} else {
+					tr = $('<tr>');
+					tabel.find('tbody').html('');
+					tr.append('<td colspan="4">' + response.message + '</td>');
+				}
+			}
+		});
+	}
+
+	$('.btnTambah').click(function() {
+		$('#id').val('');
+		$('#formKelas').trigger('reset');
+		$('#modal').modal('show');
+	});
+	$('.saveBtn').click(function() {
+		// lakukan proses simpan data, lalu tutup modal , lalu reload tabel
+		$.ajax({
+			url: '<?php echo base_url('kelas/save'); ?>',
+			type: 'POST',
+			data: {
+				id: $('#id').val(),
+				id_tahun_pelajaran: $('#id_tahun_pelajaran').val(),
+				id_jurusan: $('#id_jurusan').val(),
+				nama_kelas: $('#nama_kelas').val(),
+
+			},
+			dataType: 'json',
+			success: function(response) {
+				if (response.status) {
+					alert(response.message);
+					$('#modal').modal('hide');
+					tabel();
+				} else {
+					alert(response.message);
+				}
+			}
+
+		})
+	})
+
+
+	function editKelas(id) {
+		// tampilkan data dalam modal 
+		$.ajax({
+			url: '<?php echo base_url('kelas/edit'); ?>',
+			type: 'POST',
+			data: {
+				id: id,
+			},
+			dataType: 'json',
+			success: function(response) {
+				if (response.status) {
+					$('#id').val(response.data.id);
+					$('#id_tahun_pelajaran').val(response.data.id_tahun_pelajaran);
+					$('#id_jurusan').val(response.data.id_jurusan);
+					$('#nama_kelas').val(response.data.nama_kelas);
+					setJurusan(response.data.id_tahun_pelajaran, response.data.id_jurusan);
+					$('#modal').modal('show');
+				} else {
+					alert(response.message);
+				}
+			}
+		})
+	};
+
+	function deleteKelas(id) {
+		// lakukan proses delete data, lalu reload tabel
+		$.ajax({
+			url: '<?php echo base_url('kelas/delete'); ?>',
+			type: 'POST',
+			data: {
+				id: id,
+			},
+			dataType: 'json',
+			success: function(response) {
+				if (response.status) {
+					alert(response.message);
+					tabel();
+				} else {
+					alert(response.message);
+				}
+			}
+		})
+	};
+
+	function setJurusan(id_tahun_pelajaran, id) {
+		let url = '<?php echo base_url('kelas/option_jurusan'); ?>';
+		$('#id_jurusan').load(url + '/' + id_tahun_pelajaran, function() {
+			$('#id_jurusan').val(id);
+		});
+
+	}
 </script>
